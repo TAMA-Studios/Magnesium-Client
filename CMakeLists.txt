@@ -30,21 +30,21 @@ target_include_directories(magnesium PRIVATE
 
 
 # Base links shared by all operating systems
-target_link_libraries(sodium PRIVATE
+target_link_libraries(magnesium PRIVATE
         raylib
         CURL::libcurl
 )
 
 # Platform-specific adjustments
 if (APPLE)
-    target_link_libraries(sodium PRIVATE
+    target_link_libraries(magnesium PRIVATE
             "-framework OpenGL"
             "-framework Cocoa"
             "-framework IOKit"
             "-framework CoreVideo"
     )
 else()
-    target_link_libraries(sodium PRIVATE
+    target_link_libraries(magnesium PRIVATE
             GL m pthread dl rt X11
     )
 endif()
