@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(sodium CXX)
+project(magnesium CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -21,16 +21,31 @@ FetchContent_MakeAvailable(raylib)
 find_package(CURL REQUIRED)
 
 
-add_executable(sodium src/main.cpp)
+add_executable(magnesium src/main.cpp)
 
-target_include_directories(sodium PRIVATE
+target_include_directories(magnesium PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${raylib_SOURCE_DIR}/src
 )
 
 
+# Base links shared by all operating systems
 target_link_libraries(sodium PRIVATE
         raylib
         CURL::libcurl
-        GL m pthread dl rt X11
 )
+
+# Platform-specific adjustments
+if (APPLE)
+    target_link_libraries(sodium PRIVATE
+            "-framework OpenGL"
+            "-framework Cocoa"
+            "-framework IOKit"
+            "-framework CoreVideo"
+    )
+else()
+    target_link_libraries(sodium PRIVATE
+            GL m pthread dl rt X11
+    )
+endif()
+
