@@ -5,6 +5,8 @@
 #include <chrono>
 #if defined(__APPLE__)
 #include <mach/mach.h>
+#define GL_SILENCE_DEPRECATION
+#include <OpenGL/gl3.h>
 #endif
 StoreResult LoadSession() { return {StoreStatus::Missing,{}}; }
 StoreStatus SaveSession(const SavedSession&) { return StoreStatus::Unavailable; }
@@ -24,6 +26,12 @@ int main(int argc, char** argv) {
     InitWindow(600,480,"Magnesium memory verification");
     SetWindowMinSize(600,480);
     RefreshClientFonts(); GuiSetStyle(DEFAULT, TEXT_SIZE,14);
+#if defined(__APPLE__)
+    GLint depthBits = -1, stencilBits = -1;
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, &depthBits);
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &stencilBits);
+    check(glGetError() == GL_NO_ERROR && depthBits == 0 && stencilBits == 0);
+#endif
     for (int i = 1; i <= count; ++i) chatMessages.Append({i,0,"alice",u8"café hello world wrap test text 12345"});
     auto start = std::chrono::steady_clock::now();
     const Rectangle bounds{20,72,560,338};
@@ -108,6 +116,25 @@ int main(int argc, char** argv) {
     }
     check(chatMessages[chatMessages.size()-1].id == 101);
     ClearChatHistory();
+    // Force many automatic batch flushes. Drawing order and scissor clipping
+    // must survive the smaller batch, including on a larger Retina window.
+    SetWindowSize(800,600);
+    BeginDrawing(); ClearBackground(RAYWHITE);
+    BeginScissorMode(40,40,720,520);
+    for (int i = 0; i < 10000; ++i)
+        DrawRectangle(50+(i%100)*7,50+(i/100)*5,6,4,BLUE);
+    DrawRectangle(100,100,100,100,RED);
+    DrawClientText("Sodium React - café",120,120,16,BLACK);
+    EndScissorMode();
+    Image frame = LoadImageFromScreen();
+    const float scaleX = static_cast<float>(frame.width)/GetScreenWidth();
+    const float scaleY = static_cast<float>(frame.height)/GetScreenHeight();
+    auto pixel = [&](int x, int y) { return GetImageColor(frame, static_cast<int>(x*scaleX), static_cast<int>(y*scaleY)); };
+    const auto red = pixel(110,110), outside = pixel(20,20), blue = pixel(52,52);
+    check(red.r == RED.r && red.g == RED.g && red.b == RED.b);
+    check(outside.r == RAYWHITE.r && outside.g == RAYWHITE.g && outside.b == RAYWHITE.b);
+    check(blue.r == BLUE.r && blue.g == BLUE.g && blue.b == BLUE.b);
+    UnloadImage(frame); EndDrawing();
     GuiSetFont(GetFontDefault());
     if (headingFont.texture.id != GetFontDefault().texture.id) UnloadFont(headingFont);
     if (messageFont.texture.id != GetFontDefault().texture.id) UnloadFont(messageFont);

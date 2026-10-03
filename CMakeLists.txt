@@ -9,14 +9,28 @@ include(FetchContent)
 FetchContent_Declare(
         raylib
         GIT_REPOSITORY https://github.com/raysan5/raylib
-        GIT_TAG        master
+        GIT_TAG        012e274ae8853e9f3e5ad1db81df277adf966fb3
         GIT_PROGRESS   TRUE
 )
 
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 
+# This client does not use raylib's audio or 3D model modules.
+set(CUSTOMIZE_BUILD ON CACHE BOOL "" FORCE)
+set(USE_AUDIO OFF CACHE BOOL "" FORCE)
+set(SUPPORT_MODULE_RAUDIO OFF CACHE BOOL "" FORCE)
+set(SUPPORT_MODULE_RMODELS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(raylib)
+
+# Flush a smaller batch as needed; the number of drawable glyphs is not limited.
+target_compile_definitions(raylib PRIVATE RL_DEFAULT_BATCH_BUFFER_ELEMENTS=1024)
+if(PLATFORM STREQUAL "Desktop")
+    # Raylib resets GLFW hints internally. Intercept only that reset to request
+    # a 2D framebuffer, keeping its existing resolution/color/double buffering.
+    target_compile_definitions(raylib PRIVATE glfwDefaultWindowHints=MagnesiumDefaultWindowHints)
+    target_sources(raylib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/graphics_init.c)
+endif()
 
 find_package(CURL REQUIRED)
 find_package(Threads REQUIRED)

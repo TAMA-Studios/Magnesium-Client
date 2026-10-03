@@ -151,3 +151,27 @@ The probe also checks cache reuse, resize invalidation, newline-heavy row budget
 HTTP body bounds, draft preservation while a send is in flight, and cleared history.
 It is a manual target because it needs a graphics display; ordinary CTest remains
 headless. Windows and Linux builds/memory measurements have not been run.
+
+
+### Idle renderer memory update
+
+Raylib is pinned to the exact revision already used locally, rather than floating
+`master`. The GLFW Desktop build requests no depth/stencil framebuffer, because
+the client uses ordered 2D drawing and never enables depth/stencil testing. A
+narrow reset-hint hook in `src/graphics_init.c` applies this after raylib resets
+GLFW defaults. Color buffers, double buffering, Retina resolution, fonts, and the
+60 FPS target are unchanged. If adding 3D or stencil effects later, remove this
+hook or restore the required framebuffer attachments.
+
+The default render batch is 1,024 quads instead of 8,192; raylib automatically
+flushes full batches, so this is not a glyph or message limit. Unused raylib audio
+and 3D model modules are excluded. No existing client sound/3D feature is removed.
+
+Paired local macOS ARM64 login-page runs measured physical footprints of
+127.0/128.8 MiB before and 118.4/118.7 MiB after: about 9.4 MiB (7.3%) lower on
+average. RSS varied and did not decrease in these samples; the result is a
+physical-footprint reduction, not a claim that every memory metric improved.
+Windows/Linux memory savings have not been measured. Native graphics checks
+verify zero depth/stencil bits, correct drawing order and scissor clipping after
+10,000 rectangles force batch flushes, larger-window rendering, and the existing
+font, pagination, bounded-history and focus regressions.
