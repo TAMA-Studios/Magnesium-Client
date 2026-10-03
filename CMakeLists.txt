@@ -23,6 +23,22 @@ find_package(CURL REQUIRED)
 
 add_executable(magnesium src/main.cpp)
 
+include(CTest)
+if (BUILD_TESTING)
+    add_executable(chat_layout_test tests/chat_layout_test.cpp)
+    target_include_directories(chat_layout_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    add_test(NAME chat_layout COMMAND chat_layout_test)
+endif()
+
+# Keep bundled fonts beside the executable, independent of the working directory.
+add_custom_command(TARGET magnesium POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+                "$<TARGET_FILE_DIR:magnesium>/assets"
+        COMMENT "Copying Sodium React fonts"
+)
+
+
 target_include_directories(magnesium PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${raylib_SOURCE_DIR}/src
@@ -48,4 +64,3 @@ else()
             GL m pthread dl rt X11
     )
 endif()
-
