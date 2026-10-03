@@ -618,7 +618,7 @@ int main() {
     GuiSetStyle(DEFAULT, BASE_COLOR_NORMAL, 0xE8EDF2FF);
     GuiSetStyle(DEFAULT, BASE_COLOR_FOCUSED, 0xDCE8F4FF);
     GuiSetStyle(DEFAULT, TEXT_PADDING, 8);
-    SetTargetFPS(60);
+    SetTargetFPS(30);
     isNetworkRequestPending = true;
     loginStatusMessage = "Restoring saved session...";
     loginFuture = std::async(std::launch::async, RestoreSession);

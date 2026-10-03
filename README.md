@@ -160,7 +160,8 @@ Raylib is pinned to the exact revision already used locally, rather than floatin
 the client uses ordered 2D drawing and never enables depth/stencil testing. A
 narrow reset-hint hook in `src/graphics_init.c` applies this after raylib resets
 GLFW defaults. Color buffers, double buffering, Retina resolution, fonts, and the
-60 FPS target are unchanged. If adding 3D or stencil effects later, remove this
+frame pacing remain supported. The client now targets 30 FPS to reduce idle
+CPU/GPU rendering work; this is not a measured RAM reduction. If adding 3D or stencil effects later, remove this
 hook or restore the required framebuffer attachments.
 
 The default render batch is 1,024 quads instead of 8,192; raylib automatically
